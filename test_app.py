@@ -4,7 +4,7 @@ import logging
 import os
 import time
 
-from app import deadmans_switch
+from Deadmans_Switch import deadmans_switch
 
 class TestApp(unittest.TestCase):
     def setUp(self):
