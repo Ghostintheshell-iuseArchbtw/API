@@ -1,4 +1,5 @@
 import subprocess
+import os
 import openai
 from flask import Flask, request, jsonify
 
@@ -6,7 +7,7 @@ class GPT4API:
     def __init__(self):
         self.app = Flask(__name__)
         self.app.route('/gpt4', methods=['POST'])(self.gpt4)
-        self.api_key = "YOUR_API_KEY"  # Replace "YOUR_API_KEY" with your actual API key
+        self.api_key = os.environ.get('OPENAI_API_KEY')  # Get the API key from environment variable
         self.model_name = "gpt-4.0-turbo"  # Replace with the desired GPT 4.0 model name
 
     def run(self):
@@ -48,7 +49,7 @@ if __name__ == '__main__':
 
 def install_dependencies():
     try:
-        subprocess.check_call(['pip', 'install', 'flask', 'openai'])
+        subprocess.check_call(['pip', 'install', 'flask', 'openai', 'python-dotenv'])
         # Add any other dependencies you need to install here
         # Example: subprocess.check_call(['pip', 'install', 'dependency_name'])
         print("Dependencies installed successfully.")
