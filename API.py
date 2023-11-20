@@ -1,6 +1,5 @@
-
-from flask import Flask, request, jsonify
 import subprocess
+from flask import Flask, request, jsonify
 
 class GPT4API:
     def __init__(self):
