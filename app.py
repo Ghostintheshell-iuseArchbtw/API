@@ -31,6 +31,12 @@ except ImportError:
 def read_key_from_file(key_file_path):
     """
     Read the encryption key from the file.
+
+    Args:
+        key_file_path (str): Path to the key file.
+
+    Returns:
+        bytes: The encryption key read from the file.
     """
     with open(key_file_path, 'rb') as key_file:
         key = key_file.read()
@@ -39,6 +45,9 @@ def read_key_from_file(key_file_path):
 def generate_random_key(key_file_path):
     """
     Generate a random encryption key and save it to a file.
+
+    Args:
+        key_file_path (str): Path to save the key file.
     """
     key = Fernet.generate_key()
     with open(key_file_path, 'wb') as key_file:
@@ -47,6 +56,9 @@ def generate_random_key(key_file_path):
 def generate_key(key_file_path):
     """
     Generate a new encryption key using a password and save it to a file.
+
+    Args:
+        key_file_path (str): Path to save the key file.
     """
     salt = os.urandom(16)
     password = getpass.getpass("Enter password: ").encode()
@@ -63,6 +75,9 @@ def generate_key(key_file_path):
 def generate_random_passphrase(passphrase_file_path):
     """
     Generate a random passphrase and save it to a file.
+
+    Args:
+        passphrase_file_path (str): Path to save the passphrase file.
     """
     passphrase = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
     with open(passphrase_file_path, 'w') as passphrase_file:
@@ -71,6 +86,13 @@ def generate_random_passphrase(passphrase_file_path):
 def encrypt_data(file_path, key):
     """
     Encrypt the data in the file using the provided key.
+
+    Args:
+        file_path (str): Path to the file to be encrypted.
+        key (bytes): The encryption key.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
     """
     chunk_size = 64 * 1024
     cipher = Cipher(algorithms.AES(key), modes.CBC(os.urandom(16)))
@@ -90,6 +112,13 @@ def encrypt_data(file_path, key):
 def decrypt_data(file_path, key):
     """
     Decrypt the data in the file using the provided key.
+
+    Args:
+        file_path (str): Path to the file to be decrypted.
+        key (bytes): The encryption key.
+
+    Raises:
+        FileNotFoundError: If the encrypted file does not exist.
     """
     chunk_size = 64 * 1024
     cipher = Cipher(algorithms.AES(key), modes.CBC(os.urandom(16)))
@@ -109,6 +138,12 @@ def decrypt_data(file_path, key):
 def compress_data(file_path):
     """
     Compress the data in the file using ZIP compression.
+
+    Args:
+        file_path (str): Path to the file to be compressed.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
     """
     with zipfile.ZipFile(file_path + '.zip', 'w') as zip_file:
         zip_file.write(file_path, os.path.basename(file_path))
@@ -116,6 +151,12 @@ def compress_data(file_path):
 def decompress_data(file_path):
     """
     Decompress the data in the file using ZIP decompression.
+
+    Args:
+        file_path (str): Path to the file to be decompressed.
+
+    Raises:
+        FileNotFoundError: If the compressed file does not exist.
     """
     with zipfile.ZipFile(file_path + '.zip', 'r') as zip_file:
         zip_file.extractall(os.path.dirname(file_path))
@@ -123,6 +164,12 @@ def decompress_data(file_path):
 def shred_file(file_path):
     """
     Overwrite the file with random data multiple times to securely delete its contents.
+
+    Args:
+        file_path (str): Path to the file to be shredded.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
     """
     with open(file_path, 'ab') as file:
         file_size = os.path.getsize(file_path)
@@ -133,18 +180,36 @@ def shred_file(file_path):
 def delete_file(file_path):
     """
     Delete the file from the system.
+
+    Args:
+        file_path (str): Path to the file to be deleted.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
     """
     os.remove(file_path)
 
 def delete_directory(directory_path):
     """
     Delete the directory and its contents from the system.
+
+    Args:
+        directory_path (str): Path to the directory to be deleted.
+
+    Raises:
+        FileNotFoundError: If the directory does not exist.
     """
     shutil.rmtree(directory_path)
 
 def delete_empty_directories(directory_path):
     """
     Delete empty directories recursively.
+
+    Args:
+        directory_path (str): Path to the directory to be checked and deleted.
+
+    Raises:
+        FileNotFoundError: If the directory does not exist.
     """
     for root, _, files in os.walk(directory_path, topdown=False):
         for file_name in files:
@@ -155,6 +220,15 @@ def delete_empty_directories(directory_path):
 def handle_passphrase(file_path, cipher, key_file_path, passphrase):
     """
     Handle the passphrase.
+
+    Args:
+        file_path (str): Path to the file.
+        cipher (Fernet): The Fernet cipher object.
+        key_file_path (str): Path to the key file.
+        passphrase (str): The passphrase.
+
+    Raises:
+        FileNotFoundError: If the file or key file does not exist.
     """
     logging.info("Passphrase detected!")
     attempts = 0
@@ -177,6 +251,13 @@ def handle_passphrase(file_path, cipher, key_file_path, passphrase):
 def encrypt_and_shred_self(file_path, cipher):
     """
     Encrypt and shred the script itself.
+
+    Args:
+        file_path (str): Path to the script file.
+        cipher (Fernet): The Fernet cipher object.
+
+    Raises:
+        FileNotFoundError: If the script file does not exist.
     """
     encrypt_data(file_path, cipher)
     shred_file(file_path)
@@ -184,6 +265,13 @@ def encrypt_and_shred_self(file_path, cipher):
 def encrypt_and_shred_file(file_path, cipher):
     """
     Encrypt and shred a file.
+
+    Args:
+        file_path (str): Path to the file to be encrypted and shredded.
+        cipher (Fernet): The Fernet cipher object.
+
+    Raises:
+        FileNotFoundError: If the file does not exist.
     """
     encrypt_data(file_path, cipher)
     shred_file(file_path)
@@ -191,6 +279,13 @@ def encrypt_and_shred_file(file_path, cipher):
 def encrypt_and_shred_directory(directory_path, cipher):
     """
     Encrypt and shred all files in a directory.
+
+    Args:
+        directory_path (str): Path to the directory containing the files to be encrypted and shredded.
+        cipher (Fernet): The Fernet cipher object.
+
+    Raises:
+        FileNotFoundError: If the directory does not exist.
     """
     for root, _, files in os.walk(directory_path):
         for file_name in files:
