@@ -1,17 +1,11 @@
 import subprocess
-import os
 import subprocess
-import os
 
-# Install required packages
 try:
     subprocess.check_call(['pip', 'install', 'openai', 'flask'])
     print("Dependencies installed successfully.")
 except subprocess.CalledProcessError as e:
     print("Failed to install dependencies:", e)
-
-import openai
-from flask import Flask, request, jsonify
 
 class GPT4API:
     def __init__(self):
