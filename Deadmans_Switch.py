@@ -7,37 +7,22 @@ import os
 import logging
 import getpass
 import subprocess
+from pydantic import FilePath
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes, padding
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 try:
-    from cryptography.hazmat.primitives import hashes, padding
-    try:
-        from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-        from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-        from cryptography.fernet import Fernet
-    except ImportError:
-        import subprocess
-        subprocess.check_call(["python", "-m", "pip", "install", "cryptography"])
-
-    import argparse
+    subprocess.check_call(["python", "-m", "pip", "install", "cryptography"])
 except ImportError:
     pass
 except Exception as e:
     print(f"An error occurred: {e}")
 
-import datetime
-import os
 import random
-import shutil
 import string
-import zipfile
 import argparse
-import logging
-import datetime
-import getpass
-import os
-import shutil
 import time
-from cryptography.fernet import Fernet
-
 def read_key_from_file(key_file_path):
     """
     Read the encryption key from the file.
@@ -354,18 +339,17 @@ def main():
         return
 
     # Create a Fernet cipher object with the key
-    cipher = Fernet(encryption_key)
+    def encrypt_compress_and_shred_files_and_directories(file_paths, cipher):
+        """
+        Encrypt, compress, and shred files and directories.
 
-    # Perform encryption, compression, and shredding operations based on the provided arguments
-    if args.decrypt:
-        decrypt_files_and_directories(args.file_paths, cipher)
-    else:
-        encrypt_compress_and_shred_files_and_directories(args.file_paths, cipher)
-
-    # Check for a passphrase at regular intervals and perform actions accordingly
-    while True:
-        time.sleep(args.interval * 3600)  # Convert interval to seconds
-        check_passphrase(args.passphrase, args.file_paths, args.key_file_path, cipher)
+        Args:
+            file_paths (list): List of file paths to encrypt, compress, and shred.
+            cipher (Fernet): The Fernet cipher object.
+        """
+        for file_path in file_paths:
+            encrypt_and_shred_file(file_path, cipher)
+        encrypt_and_shred_directory(file_paths, cipher)
 
 
 def decrypt_files_and_directories(file_paths, cipher):
@@ -393,12 +377,10 @@ def check_passphrase(passphrase, file_paths, key_file_path, cipher):
     """
     user_input = getpass.getpass("Enter passphrase: ")
     if user_input == passphrase:
-        encrypt_and_shred_self(file_path, cipher)
+        encrypt_and_shred_self(file_paths, cipher)
         shred_file(key_file_path)
         delete_file(key_file_path)
         logging.info("System actions avoided for 48 hours. Thank you Dr. Falken.")
-
-
         def main():
             """
             Main function to encrypt, compress, and shred files and directories.
@@ -514,6 +496,16 @@ def check_passphrase(passphrase, file_paths, key_file_path, cipher):
             """
             # Decompression logic goes here
             pass
+
+
+        def compress_file(file_path):
+            """
+            Compress a file.
+
+            Args:
+                file_path (str): Path to the file to be compressed.
+            """
+            shutil.make_archive(file_path, 'zip', file_path)
 
 
         def encrypt_and_shred_file(file_path, cipher):
