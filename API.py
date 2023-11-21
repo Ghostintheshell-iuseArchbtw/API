@@ -1,15 +1,4 @@
 import subprocess
-import subprocess
-
-try:
-    subprocess.check_call(['pip', 'install', 'openai', 'flask'])
-    print("Dependencies installed successfully.")
-except subprocess.CalledProcessError as e:
-    print("Failed to install dependencies:", e)
-
-import os
-from flask import Flask, request, jsonify
-import subprocess
 import os
 from flask import Flask, request, jsonify
 import openai
@@ -18,43 +7,53 @@ import os
 from flask import Flask, request, jsonify
 import openai
 
-class GPT4API:
-    """
-    A class representing the GPT4API.
-
-    This class provides an API for interacting with the GPT-4.0 model.
-    """
-
+class SecureAPI:
     def __init__(self):
         self.app = Flask(__name__)
         self.app.route('/gpt4', methods=['POST'])(self.gpt4)
-        self.api_key = os.environ.get('OPENAI_API_KEY')  # Get the API key from environment variable
-        self.model_name = "gpt-4.0-turbo"  # Replace with the desired GPT 4.0 model name
+        self.app.route('/chat', methods=['POST'])(self.chat)
+        self.model_name = "gpt-4.0-turbo"
 
     def run(self):
-        """
-        Runs the Flask application.
-        """
-        self.app.run()
+        try:
+            self.app.run()
+        except OSError as e:
+            print(f"Failed to start the server: {e}")
+            exit(1)
 
     def gpt4(self):
-        """
-        Handles the '/gpt4' endpoint.
-
-        This method processes the GPT 4.0 request and generates a response based on the provided prompt.
-
-        Returns:
-            A JSON response containing the generated response.
-        """
         try:
             data = request.get_json()
-            prompt = data['prompt']
-            
-            # Perform GPT 4.0 processing here
-            response = self.generate_response(prompt)
-            
+            # Your code here
+        except Exception as e:
+            error_response = {
+                'error': str(e)
+            }
+            return jsonify(error_response), 500
+        api_key = data['api_key']
+        prompt = data['prompt']
+
+        if not self.authenticate(api_key):
+            return jsonify({'error': 'Invalid API key'}), 401
+
+        response = self.generate_response(prompt)
+        response_data = {
+            'result': self.obscure_key(response)
+        }
+        return jsonify(response_data)
+
+    def chat(self):
+        try:
+            data = request.get_json()
+            api_key = data['api_key']
+            messages = data['messages']
+
+            if not self.authenticate(api_key):
+                return jsonify({'error': 'Invalid API key'}), 401
+
+            response = self.generate_response(messages)
             response_data = {
-                'result': response
+                'result': self.obscure_key(response)
             }
             return jsonify(response_data)
         except Exception as e:
@@ -63,99 +62,120 @@ class GPT4API:
             }
             return jsonify(error_response), 500
 
-    def generate_response(self, prompt):
-        """
-        Generates a response based on the provided prompt.
+    def generate_response(self, input_data):
+        openai.api_key = os.environ.get('OPENAI_API_KEY')
+        prompt = ""
+        if isinstance(input_data, str):
+            prompt = input_data
+        elif isinstance(input_data, list):
+            for message in input_data:
+                role = message['role']
+                content = message['content']
+                prompt += f"{role}: {content}\n"
 
-        Args:
-            prompt (str): The prompt for generating the response.
-
-        Returns:
-            str: The generated response.
-        """
-        # Add your GPT 4.0 processing logic here
-        pass
-
-class GPT4API:
-    """
-    A class representing the GPT4API.
-
-    This class provides an API for interacting with the GPT-4.0 model.
-    """
-
-    def __init__(self):
-        self.app = Flask(__name__)
-        self.app.route('/gpt4', methods=['POST'])(self.gpt4)
-        self.api_key = os.environ.get('OPENAI_API_KEY')  # Get the API key from environment variable
-        self.model_name = "gpt-4.0-turbo"  # Replace with the desired GPT 4.0 model name
-
-    def run(self):
-        """
-        Runs the Flask application.
-        """
-        self.app.run()
-
-    def gpt4(self):
-        """
-        Handles the '/gpt4' endpoint.
-
-        This method processes the GPT 4.0 request and generates a response based on the provided prompt.
-
-        Returns:
-            A JSON response containing the generated response.
-        """
-        try:
-            data = request.get_json()
-            prompt = data['prompt']
-            
-            # Perform GPT 4.0 processing here
-            response = self.generate_response(prompt)
-            
-            response_data = {
-                'result': response
-            }
-            return jsonify(response_data)
-        except Exception as e:
-            error_response = {
-                'error': str(e)
-            }
-            return jsonify(error_response), 500
-
-    def generate_response(self, prompt):
-        """
-        Generates a response using the GPT 4.0 model.
-
-        Args:
-            prompt (str): The prompt for generating the response.
-
-        Returns:
-            str: The generated response.
-        """
-        openai.api_key = self.api_key
         response = openai.Completion.create(
             engine=self.model_name,
             prompt=prompt,
             max_tokens=100,
-            n=1,
+            n=3,
             stop=None,
             temperature=0.7
         )
-        return response.choices[0].text.strip()
 
-    def install_dependencies():
+        return [choice.text.strip() for choice in response.choices]
+
+def install_dependencies():
+    try:
+        subprocess.check_call(['pip', 'install', 'flask', 'openai', 'python-dotenv'])
+        os.makedirs('logs', exist_ok=True)
+        os.makedirs('data', exist_ok=True)
+        print("Dependencies installed successfully.")
+    except subprocess.CalledProcessError as e:
+        print("Failed to install dependencies:", e)
+
+class SecureAPI:
+    def __init__(self):
+        self.model_name = "gpt-4.0"
+
+    def run(self):
+        # Your code for running the API
+        pass
+
+    def gpt4(self):
         try:
-            subprocess.check_call(['pip', 'install', 'flask', 'openai', 'python-dotenv'])
-            # Add any other dependencies you need to install here
-            # Example: subprocess.check_call(['pip', 'install', 'dependency_name'])
-            print("Dependencies installed successfully.")
-        except subprocess.CalledProcessError as e:
-            print("Failed to install dependencies:", e)
+            data = request.get_json()
+            api_key = data['api_key']
+            prompt = data['prompt']
 
-    if __name__ == '__main__':
-        install_dependencies()
-        api = GPT4API()
-        api.run()
+            if not self.authenticate(api_key):
+                return jsonify({'error': 'Invalid API key'}), 401
+
+            response = self.generate_response(prompt)
+            response_data = {
+                'result': self.obscure_key(response)
+            }
+            return jsonify(response_data)
+
+        except Exception as e:
+            error_response = {
+                'error': str(e)
+            }
+            return jsonify(error_response), 500
+
+    def chat(self):
+        # Your code for the chat endpoint
+        pass
+
+    def generate_response(self, input_data):
+        openai.api_key = os.environ.get('OPENAI_API_KEY')
+        prompt = ""
+        if isinstance(input_data, str):
+            prompt = input_data
+        elif isinstance(input_data, list):
+            for message in input_data:
+                role = message['role']
+                content = message['content']
+                prompt += f"{role}: {content}\n"
+
+        response = openai.Completion.create(
+            engine=self.model_name,
+            prompt=prompt,
+            max_tokens=100,
+            n=3,
+            stop=None,
+            temperature=0.7
+        )
+
+        return [choice.text.strip() for choice in response.choices]
+
+        response = openai.Completion.create(
+            engine=self.model_name,
+            prompt=prompt,
+            max_tokens=100,
+            n=3,
+            stop=None,
+            temperature=0.7
+        )
+
+        return [choice.text.strip() for choice in response.choices]
+
+
+def install_dependencies():
+    try:
+        subprocess.check_call(['pip', 'install', 'flask', 'openai', 'python-dotenv'])
+        os.makedirs('logs', exist_ok=True)
+        os.makedirs('data', exist_ok=True)
+        print("Dependencies installed successfully.")
+    except subprocess.CalledProcessError as e:
         print("Failed to install dependencies:", e)
 
 if __name__ == '__main__':
     install_dependencies()
+    api = SecureAPI()
+    api.run()
+
+
+
+
+
+
