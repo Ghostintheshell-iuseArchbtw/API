@@ -5,7 +5,7 @@ import openai
 class SecureAPI:
     class SecureAPI(SecureAPI):
         def __init__(self):
-            super().__init__()
+            super().__init__()          
             self.app = Flask(__name__)
             self.app.route('/gpt4', methods=['POST'])(self.gpt4)
             self.app.route('/chat', methods=['POST'])(self.chat)
